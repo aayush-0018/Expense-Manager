@@ -13,7 +13,15 @@ The implementation uses React + TypeScript on the frontend and Spring Boot + Pos
 
 ## Architecture
 
+### Product Testing Flow
+
+The end-to-end product journey, including the main user flows, validation, anomaly behaviour, and failure handling.
+
 ![Product testing flow](docs/product-testing-flow.png)
+
+### Technical Architecture
+
+The implementation-level flow from the React frontend through the Spring Boot services and persistence layer into PostgreSQL.
 
 ![Technical architecture](docs/technical-architecture.png)
 
@@ -1249,17 +1257,3 @@ cd frontend
 npm test
 npm run typecheck
 ```
-
-
-# 11. Testing
-
-The project includes:
-
-- Backend unit tests
-- Backend PostgreSQL integration tests
-- MockMvc HTTP tests
-- Frontend tests
-- CSV parsing tests
-- Categorization tests
-- Anomaly calculation tests
-- Dashboard aggregation tests
