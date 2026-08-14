@@ -69,9 +69,6 @@ Main tables:
 ```text
 iConcile/
 ├── README.md
-├── TECHNICAL_PLAN.md
-├── TESTING_GUIDE.md
-├── TECH_REFERENCE.md
 ├── render.yaml
 ├── sample-data/
 │   ├── expenses.csv
