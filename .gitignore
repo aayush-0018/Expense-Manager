@@ -1,0 +1,17 @@
+# Build output
+backend/target/
+frontend/dist/
+frontend/node_modules/
+frontend/node_modules/.tmp/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*.log
+
+# Local environment overrides
+.env
+.env.local
+*.local

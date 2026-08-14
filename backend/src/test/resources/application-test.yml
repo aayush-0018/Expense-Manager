@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: ${TEST_DATASOURCE_URL:jdbc:postgresql://localhost:5432/expenses_test}
+    username: ${TEST_DATASOURCE_USERNAME:postgres}
+    password: ${TEST_DATASOURCE_PASSWORD:postgres}
+    hikari:
+      # Fail fast when no database is listening, so the suite skips rather than hangs.
+      connection-timeout: 3000
+      initialization-fail-timeout: -1
+      maximum-pool-size: 4
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
+    clean-disabled: false
+
+anomaly:
+  multiplier: 3.0
+  min-sample-size: 3
+
+csv:
+  max-rows: 10000
+  batch-size: 500
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    com.iconcile.expense: WARN

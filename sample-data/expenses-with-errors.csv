@@ -1,0 +1,11 @@
+Transaction Date,Value,Merchant,Notes
+15/06/2026,450.00,Swiggy,Valid row - dd/MM/yyyy locks the file's date format
+16/06/2026,"1,250.50",BigBasket,Valid row - thousands separator is stripped
+17/06/2026,Rs. 320,Uber,Valid row - currency prefix is stripped
+2026-06-18,500.00,Zomato,BAD - yyyy-MM-dd conflicts with the format locked by row 2
+19/06/2026,abc,Netflix,BAD - amount is not a number
+20/06/2026,-99.00,Amazon,BAD - amount is not positive
+31/02/2026,250.00,Flipkart,BAD - 31 February does not exist
+22/06/2026,180.00,,BAD - vendor name is missing
+23/06/2026,99.999,Starbucks,BAD - more than 2 decimal places
+24/06/2026,275.00,Blinkit,Valid row - lands despite the failures above

@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: mini-expense-manager
+
+  datasource:
+    # Two ways in, so the same image runs locally and on a managed host:
+    #   1. SPRING_DATASOURCE_URL — one full JDBC URL (local default below)
+    #   2. DB_HOST / DB_PORT / DB_NAME — separate fields, which is how managed
+    #      providers such as Render expose a database to a service
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:expenses}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:postgres}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:postgres}}
+    hikari:
+      # Render's free PostgreSQL caps connections well below the default pool size.
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+
+  jpa:
+    open-in-view: false          # DTOs are mapped inside the service layer; no lazy loading in views.
+    hibernate:
+      ddl-auto: validate         # Flyway owns the schema; Hibernate only checks it matches.
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 500
+        order_inserts: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+  jackson:
+    default-property-inclusion: always
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  # PaaS hosts inject the port to bind as PORT and will not route traffic to
+  # anything else. SERVER_PORT stays as a local override.
+  port: ${PORT:${SERVER_PORT:8080}}
+  error:
+    include-message: never       # Errors are shaped by GlobalExceptionHandler.
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# --- Anomaly detection -------------------------------------------------------
+# multiplier      : an expense above this multiple of its category average is flagged (3x per spec)
+# min-sample-size : how many OTHER expenses a category needs before anything in it can be flagged
+# lookback-days   : window for the average; empty means all time
+anomaly:
+  multiplier: ${ANOMALY_MULTIPLIER:3.0}
+  min-sample-size: ${ANOMALY_MIN_SAMPLE_SIZE:3}
+  lookback-days: ${ANOMALY_LOOKBACK_DAYS:}
+
+csv:
+  max-rows: ${CSV_MAX_ROWS:10000}
+  batch-size: ${CSV_BATCH_SIZE:500}
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+
+logging:
+  level:
+    com.iconcile.expense: INFO

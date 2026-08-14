@@ -1,0 +1,99 @@
+# Render Blueprint — provisions the database, API and web app together.
+#
+# Deploy: Render Dashboard → New → Blueprint → pick this repo.
+#
+# ⚠️  ONE MANUAL EDIT IS REQUIRED after the first deploy.
+#     The /api rewrite below needs the API's real hostname, which Render only
+#     assigns once the service exists. Render cannot interpolate a service URL
+#     into a route destination, so this cannot be automated away.
+#     See DEPLOYMENT.md → Step 5.
+
+databases:
+  - name: expense-manager-db
+    databaseName: expenses
+    user: expenses
+    plan: free
+    postgresMajorVersion: "16"
+    ipAllowList: []          # empty = internal connections only, no public exposure
+
+services:
+  # ---------------------------------------------------------------- API
+  - type: web
+    name: expense-manager-api
+    runtime: docker
+    plan: free
+    region: singapore        # keep the DB and API in the SAME region
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      # Render exposes the database as separate fields; application.yml
+      # composes them into a JDBC URL.
+      - key: DB_HOST
+        fromDatabase:
+          name: expense-manager-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: expense-manager-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: expense-manager-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: expense-manager-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: expense-manager-db
+          property: password
+
+      # Free PostgreSQL allows few connections; a large pool exhausts them.
+      - key: DB_POOL_SIZE
+        value: "5"
+
+      # 512 MB instance.
+      - key: JAVA_OPTS
+        value: "-XX:MaxRAMPercentage=70 -XX:+UseSerialGC"
+
+      # Requests reach the API through the static site's rewrite, so the
+      # browser stays same-origin and no CORS origin is needed. Set this only
+      # if you switch to calling the API host directly (DEPLOYMENT.md, Option B).
+      - key: APP_CORS_ALLOWED_ORIGINS
+        sync: false
+
+  # ---------------------------------------------------------------- Web app
+  - type: web
+    name: expense-manager-web
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: true
+    routes:
+      # ORDER MATTERS. /api/* must be matched before the SPA catch-all,
+      # otherwise every API call would be answered with index.html.
+      - type: rewrite
+        source: /api/*
+        destination: https://expense-manager-api.onrender.com/api/*   # ← EDIT after first deploy
+
+      # React Router owns the paths; every unknown URL serves the app shell
+      # so a deep link or refresh does not 404.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+    headers:
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable   # filenames are content-hashed
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
